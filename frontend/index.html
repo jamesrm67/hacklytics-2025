@@ -31,10 +31,9 @@
 </head>
 <body>
 <div class="container">
-    <!-- Left side: Dream input -->
     <div class="form-section">
         <h1>Dream Catcher</h1>
-        <form id="dreamForm">
+        <form id="dreamForm" method="post">
             <label for="theme">Dream Theme</label>
             <input type="text" id="theme" name="theme" placeholder="e.g. flying, being chased" required />
 
@@ -47,13 +46,12 @@
             <button type="submit" id="generateBtn">Generate Dream Interpretation</button>
         </form>
 
-        <div class="analysis-section" id="analysisOutput"></div>
+        <div class="analysis-section" id="analysisOutput">{{ analysis_output }}</div>
     </div>
 
-    <!-- Right side: image at top, tweak controls at bottom -->
     <div class="image-section">
         <div id="imageContainer">
-            <img id="dreamImage" src="" alt="Dream Representation" />
+            <img id="dreamImage" src="data:image/png;base64,{{ image_data }}" alt="Dream Representation" />
         </div>
         <div class="tweak-section">
             <label for="tweakInput">Tweak Image Prompt</label>
@@ -63,22 +61,17 @@
     </div>
 </div>
 
-<!-- Burger Menu Button (fixed at top right) -->
 <button class="burger-menu" id="burgerMenuBtn" aria-label="Open Image History">
-    &#9776;  <!-- Standard hamburger icon -->
-</button>
+    &#9776; </button>
 
-<!-- Slide-out Sidebar -->
 <div class="navigation-sidebar" id="imageHistorySidebar">
     <h2 style="padding: 1rem; margin: 0;">Image History</h2>
     <ul id="imageList" style="list-style: none; margin: 0; padding: 1rem;">
-        <!-- Dynamically populate or hard-code some image history items -->
         <li>Generated Image #1</li>
         <li>Generated Image #2</li>
         <li>Generated Image #3</li>
     </ul>
 
-    <!-- Merge Button -->
     <button id="mergeBtn">Merge</button>
 </div>
 
