@@ -9,6 +9,8 @@ from image_gen import generate_dream_image
 import io
 import os
 from dotenv import load_dotenv
+import base64 #Import base64
+
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
@@ -20,26 +22,32 @@ cred = credentials.Certificate("hacklytics25servicekey.json")
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        dream_text = request.form["dream_text"]      
-        analysis = analyze_dream(dream_text)
-        interpretation = analysis.get("interpretation", "No interpretation available.")
-        
-        return render_template("index.html", interpretation=interpretation)
-    else:
-        return render_template("index.html")
+        dream_text = request.form["dream_text"]
+        if not dream_text:
+            return "No dream text provided", 400
 
-@app.route("/generate_img", methods=["POST"])
-def generate_img():
-    if request.method == "POST":
-        dream_prompt = request.form["dream_prompt"]
-        image = generate_dream_image(dream_prompt)
+        analysis = analyze_dream(dream_text)
+        if type(analysis) == str:
+            return render_template("index.html")
+        interpretation = analysis["interpretation"]
+
+        # Use the interpretation as the prompt for image generation
+        image = generate_dream_image(interpretation)
+
         img_io = io.BytesIO()
         image.save(img_io, 'PNG')
         img_io.seek(0)
-        return send_file(img_io, mimetype='image/png')
+        image_data = img_io.getvalue()
+        encoded_image = base64.b64encode(image_data).decode('utf-8') #Encode the image
+
+        return render_template("index.html", interpretation=interpretation, image_data=encoded_image)
+    
+    else:
+        return render_template("index.html")
 
 @app.route("/register", methods=["POST"])
 def register():
