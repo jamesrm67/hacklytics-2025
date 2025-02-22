@@ -6,11 +6,14 @@ from firebase_admin import credentials, firestore, auth
 
 from nlp import analyze_dream
 from image_gen import generate_dream_image
-import io
+import io, os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
-app.secret_key = "supersecretkey"
+
+load_dotenv()
+app.secret_key = (os.getenv("SECRET_KEY"))
 
 cred = credentials.Certificate("hacklytics25servicekey.json")
 firebase_admin.initialize_app(cred)
