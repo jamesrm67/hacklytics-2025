@@ -5,9 +5,19 @@ import io
 
 app = Flask(__name__)
 
-@app.route("/", methods=["GET"])
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return render_template("index.html")
+    if request.method == "POST":
+        dream_text = request.form["dream_text"]
+        if not dream_text:
+            return "No dream text provided", 400
+        
+        analysis = analyze_dream(dream_text)
+        interpretation = analysis["interpretation"]
+        
+        return render_template("index.html", interpretation=interpretation)
+    else:
+        return render_template("index.html")
 
 @app.route("/generate_img", methods=["POST"])
 def generate_img():
@@ -18,14 +28,6 @@ def generate_img():
         image.save(img_io, 'PNG')
         img_io.seek(0)
         return send_file(img_io, mimetype='image/png')
-
-@app.route("/analyze", methods=["POST"])
-def analyze():
-    dream_text = request.form.get["dream_text"]
-    if not dream_text:
-        return "No dream text provided", 400
-    analysis = analyze_dream(dream_text)
-    return analysis
 
 if __name__ == "__main__":
     app.run(debug=True)

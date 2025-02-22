@@ -8,7 +8,7 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def extract_entities(dream_text):
-    system_message = "Entities are defined as people, places, objects, and emotions in the context. Extract the key entities from the following text.  Return a JSON object with a single key called 'entities'. The value of this key should be a JSON array containing the entities."
+    system_message = "Entities are defined as people, places, objects, and emotions in the context. You are a dream interpretation expert. Extract the key entities from the following dream description.  Return a JSON object with a single key called 'entities'. The value of this key should be a JSON array containing the entities."
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -16,7 +16,7 @@ def extract_entities(dream_text):
             {"role": "user", "content": dream_text}
         ],
         temperature=1.0,
-        max_tokens=150,
+        max_tokens=200,
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0
@@ -29,7 +29,7 @@ def extract_entities(dream_text):
     return entities
 
 def analyze_sentiment(dream_text):
-    system_message = "Analyze the sentiment of the following text. Return a JSON object with a single key called 'sentiment'. The value of this key should be a string indicating the sentiment (positive, negative, neutral)."
+    system_message = "You are a dream interpretation expert. Analyze the sentiment of the following dream description. Return a JSON object with a single key called 'sentiment'. The value of this key should be a tuple containin a string and floating point integer indicating the sentiment (positive, negative, neutral) with the floating point integer indicating the level of sentiment from 0.0 to 1.0."
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
