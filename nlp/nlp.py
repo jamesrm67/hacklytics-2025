@@ -8,6 +8,9 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def extract_entities(dream_text):
+    if not dream_text:
+        return ("No dream text provided", 400)
+    
     system_message = "Entities are defined as people, places, objects, and emotions in the context. You are a dream interpretation expert. Extract the key entities from the following dream description.  Return a JSON object with a single key called 'entities'. The value of this key should be a JSON array containing the entities."
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -25,10 +28,16 @@ def extract_entities(dream_text):
     # Parse the response to extract the entities
     content = response.choices[0].message.content
     data = json.loads(content)
+    if "entities" not in data or data["entities"] == []:
+        return ("No entities found", 400)
+    
     entities = data["entities"]
     return entities
 
 def analyze_sentiment(dream_text):
+    if not dream_text:
+        return ("No dream text provided", 400)
+    
     system_message = "You are a dream interpretation expert. Analyze the sentiment of the following dream description. Return a JSON object with a single key called 'sentiment'. The value of this key should be a tuple containin a string and floating point integer indicating the sentiment (positive, negative, neutral) with the floating point integer indicating the level of sentiment from 0.0 to 1.0."
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -50,6 +59,9 @@ def analyze_sentiment(dream_text):
     return sentiments
 
 def interpret_symbols(dream_text):
+    if not dream_text:
+        return ("No dream text provided", 400)
+    
     system_message = "Interpret the symbols in the following text. Return a JSON object with a single key called 'interpretation'. The value of this key should be a string containing the interpretation of the symbols."
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -71,6 +83,9 @@ def interpret_symbols(dream_text):
     return interpretation
 
 def analyze_dream(dream_text):
+    if not dream_text:
+        return ("No dream text provided", 400)
+    
     entities = extract_entities(dream_text)
     sentiment = analyze_sentiment(dream_text)
     interpretation = interpret_symbols(dream_text)
