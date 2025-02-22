@@ -4,5 +4,3 @@ openai
 dotenv
 diffusers
 acceralate
-firebase-admin
-flask-cors

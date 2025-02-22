@@ -6,11 +6,13 @@ from firebase_admin import credentials, firestore, auth
 
 from nlp import analyze_dream
 from image_gen import generate_dream_image
-import io, os
+import io
+import os
 from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
+app.secret_key = "supersecretkey"
 
 load_dotenv()
 app.secret_key = (os.getenv("SECRET_KEY"))
@@ -32,6 +34,16 @@ def index():
         return render_template("index.html", interpretation=interpretation)
     else:
         return render_template("index.html")
+
+@app.route("/generate_img", methods=["POST"])
+def generate_img():
+    if request.method == "POST":
+        dream_prompt = request.form["dream_prompt"]
+        image = generate_dream_image(dream_prompt)
+        img_io = io.BytesIO()
+        image.save(img_io, 'PNG')
+        img_io.seek(0)
+        return send_file(img_io, mimetype='image/png')
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -79,15 +91,6 @@ def dashboard():
         return jsonify({"error": "Unauthorized"}), 401
     return jsonify({"message": f"Welcome, {session['email']}!"}), 200
 
-@app.route("/generate_img", methods=["POST"])
-def generate_img():
-    if request.method == "POST":
-        dream_prompt = request.form["dream_prompt"]
-        image = generate_dream_image(dream_prompt)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png')
 
 if __name__ == "__main__":
     app.run(debug=True)

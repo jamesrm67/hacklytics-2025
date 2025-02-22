@@ -21,8 +21,7 @@ def extract_entities(dream_text):
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0
-        )
-        
+    )
         # Parse the response to extract the entities
         content = response.choices[0].message.content
         data = json.loads(content)
@@ -32,6 +31,7 @@ def extract_entities(dream_text):
         raise ValueError("Invalid JSON response from the API")
     except Exception as e:
         raise ValueError(f"Error extracting entities: {str(e)}")
+
 
 def analyze_sentiment(dream_text):
     try:
@@ -58,6 +58,7 @@ def analyze_sentiment(dream_text):
     except Exception as e:
         raise ValueError(f"Error analyzing sentiment: {str(e)}")
 
+
 def interpret_symbols(dream_text):
     try:
         system_message = "Interpret the symbols in the following text. Return a JSON object with a single key called 'interpretation'. The value of this key should be a string containing the interpretation of the symbols."
@@ -83,8 +84,6 @@ def interpret_symbols(dream_text):
     except Exception as e:
         raise ValueError(f"Error interpreting symbols: {str(e)}")
 
-
-
 def analyze_dream(dream_text):
     try:
         entities = extract_entities(dream_text)
@@ -99,7 +98,3 @@ def analyze_dream(dream_text):
         return nlp_output
     except Exception as e:
         return str(e)
-
-dream = "I was walking through a forest and I saw a bear. I was scared and I ran away. I woke up and I was sweating."
-print(analyze_sentiment(dream))
-print(analyze_dream(dream))
