@@ -23,12 +23,9 @@ db = firestore.client()
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        dream_text = request.form["dream_text"]
-        if not dream_text:
-            return "No dream text provided", 400
-        
+        dream_text = request.form["dream_text"]      
         analysis = analyze_dream(dream_text)
-        interpretation = analysis["interpretation"]
+        interpretation = analysis.get("interpretation", "No interpretation available.")
         
         return render_template("index.html", interpretation=interpretation)
     else:
