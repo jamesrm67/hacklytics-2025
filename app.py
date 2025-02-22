@@ -6,7 +6,7 @@ from firebase_admin import credentials, firestore, auth
 
 from nlp import analyze_dream
 from image_gen import generate_dream_image
-import io
+from io import BytesIO
 import os
 from dotenv import load_dotenv
 import base64 #Import base64
@@ -23,31 +23,38 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 
-@app.route("/", methods=["GET", "POST"])
+app = Flask(__name__)
+
+
+def encode_image_to_base64(image):
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return img_str
+
+@app.route('/')
 def index():
-    if request.method == "POST":
-        dream_text = request.form["dream_text"]
-        if not dream_text:
-            return "No dream text provided", 400
+    return render_template('index.html')
 
-        analysis = analyze_dream(dream_text)
-        if type(analysis) == str:
-            return render_template("index.html")
-        interpretation = analysis["interpretation"]
+@app.route('/analyze', methods=['POST'])
+def analyzer():
+    dream_text = request.json['dream']
+    analysis_dict = analyze_dream(dream_text)
 
-        # Use the interpretation as the prompt for image generation
-        image = generate_dream_image(interpretation)
-
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        image_data = img_io.getvalue()
-        encoded_image = base64.b64encode(image_data).decode('utf-8') #Encode the image
-
-        return render_template("index.html", interpretation=interpretation, image_data=encoded_image)
-    
+    if isinstance(analysis_dict, dict):  # Check if it's a dictionary
+        try:
+            prompt = generate_image_prompt(analysis_dict['interpretation'])
+            image = generate_dream_image(prompt)
+            base64_image = encode_image_to_base64(image)
+            return jsonify({'analysis': analysis_dict['interpretation'], 'image_data': base64_image})
+        except TypeError as e:
+            return jsonify({"error": str(e)}), 500
     else:
-        return render_template("index.html")
+        # Handle the string exception case
+        return jsonify({"error": "Dream analysis failed: " + analysis_dict}), 500
+
+def generate_image_prompt(analysis):
+    return f"A dreamlike image, {analysis}, surreal, detailed."
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -96,5 +103,5 @@ def dashboard():
     return jsonify({"message": f"Welcome, {session['email']}!"}), 200
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
