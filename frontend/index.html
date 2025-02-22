@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Dream Catcher</title>
     <link rel="stylesheet" href="styles.css"/>
+    <script>
+        // JavaScript to test form submission
+        const dream_text = document.getElementById('dream_text');
+        const form = document.getElementById('dreamForm');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const dreamText = dream_text.value;
+            fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ dream_text: dreamText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                document.getElementById('analysisOutput').innerText = data.analysis;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
 </head>
 <body>
 <div class="container">
@@ -18,8 +41,8 @@
             <label for="characters">Who Was There?</label>
             <input type="text" id="characters" name="characters" placeholder="e.g. family, friends..." required />
 
-            <label for="events">What Happened?</label>
-            <textarea id="events" name="events" placeholder="Describe the dream events..." required></textarea>
+            <label for="dream_text">What Happened?</label>
+            <textarea id="dream_text" name="dream_text" placeholder="Describe the dream events..." required></textarea>
 
             <button type="submit" id="generateBtn">Generate Dream Interpretation</button>
         </form>
@@ -59,6 +82,6 @@
     <button id="mergeBtn">Merge</button>
 </div>
 
-<script src="script.js"></script>
+<!-- <script src="script.js"></script> -->
 </body>
 </html>
