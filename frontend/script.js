@@ -16,7 +16,7 @@ dreamForm.addEventListener("submit", async (e) => {
   // Collect form data
   const theme = document.getElementById("theme").value.trim();
   const characters = document.getElementById("characters").value.trim();
-  const events = document.getElementById("events").value.trim();
+  const dream_text = document.getElementById("dream_text").value.trim();
 
   // Step 1: Send the dream details to ChatGPT
   let dreamAnalysis, dallePrompt;
@@ -24,7 +24,7 @@ dreamForm.addEventListener("submit", async (e) => {
     const response = await fetch(CHATGPT_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ theme, characters, events }),
+      body: JSON.stringify({ theme, characters, dream_text }),
     });
 
     const data = await response.json();
