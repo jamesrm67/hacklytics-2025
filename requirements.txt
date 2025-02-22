@@ -1,6 +1,10 @@
 transformers
 torch
 Pillow
+<<<<<<< HEAD
 flask
 openai
 dotenv
+=======
+flask
+>>>>>>> f09bfa52a17b18c430bafd9dabed3717be69c766
