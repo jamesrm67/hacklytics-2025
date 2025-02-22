@@ -1,6 +1,5 @@
 from flask import Flask, request, send_file
 from diffusers import StableDiffusionPipeline
-import torch
 import io
 
 app = Flask(__name__)
