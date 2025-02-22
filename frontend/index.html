@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dream Catcher</title>
+    <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<div class="container">
+    <!-- Left side: Dream input -->
+    <div class="form-section">
+        <h1>Dream Catcher</h1>
+        <form id="dreamForm">
+            <label for="theme">Dream Theme</label>
+            <input type="text" id="theme" name="theme" placeholder="e.g. flying, being chased" required />
+
+            <label for="characters">Who Was There?</label>
+            <input type="text" id="characters" name="characters" placeholder="e.g. family, friends..." required />
+
+            <label for="events">What Happened?</label>
+            <textarea id="events" name="events" placeholder="Describe the dream events..." required></textarea>
+
+            <button type="submit" id="generateBtn">Generate Dream Interpretation</button>
+        </form>
+
+        <div class="analysis-section" id="analysisOutput"></div>
+    </div>
+
+    <!-- Right side: image at top, tweak controls at bottom -->
+    <div class="image-section">
+        <div id="imageContainer">
+            <img id="dreamImage" src="" alt="Dream Representation" />
+        </div>
+        <div class="tweak-section">
+            <label for="tweakInput">Tweak Image Prompt</label>
+            <input type="text" id="tweakInput" placeholder="e.g. make it more vibrant, add clouds..." />
+            <button id="tweakBtn">Update Image</button>
+        </div>
+    </div>
+</div>
+
+<!-- Burger Menu Button (fixed at top right) -->
+<button class="burger-menu" id="burgerMenuBtn" aria-label="Open Image History">
+    &#9776;  <!-- Standard hamburger icon -->
+</button>
+
+<!-- Slide-out Sidebar -->
+<div class="navigation-sidebar" id="imageHistorySidebar">
+    <h2 style="padding: 1rem; margin: 0;">Image History</h2>
+    <ul id="imageList" style="list-style: none; margin: 0; padding: 1rem;">
+        <!-- Dynamically populate or hard-code some image history items -->
+        <li>Generated Image #1</li>
+        <li>Generated Image #2</li>
+        <li>Generated Image #3</li>
+    </ul>
+
+    <!-- Merge Button -->
+    <button id="mergeBtn">Merge</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
