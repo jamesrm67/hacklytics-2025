@@ -58,6 +58,7 @@ def analyze_sentiment(dream_text):
     except Exception as e:
         raise ValueError(f"Error analyzing sentiment: {str(e)}")
 
+
 def interpret_symbols(dream_text):
     try:
         system_message = "Interpret the symbols in the following text. Return a JSON object with a single key called 'interpretation'. The value of this key should be a string containing the interpretation of the symbols."

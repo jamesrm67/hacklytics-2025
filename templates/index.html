@@ -2,154 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Dream Catcher</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"/>
     <script>
-        /**
-         * Handle the dream analysis form submission.
-         * Fetches dream interpretation and the generated image from the backend.
-         */
-        document.addEventListener("DOMContentLoaded", () => {
-            const form = document.getElementById("dreamForm");
+        // JavaScript to test form submission
+        const dream_text = document.getElementById('dream_text');
+        const form = document.getElementById('dreamForm');
 
-            form.addEventListener("submit", (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-
-                // Clear previous content and show a loading state
-                document.getElementById("interpretation").innerText = "Processing your dream... Please wait.";
-                document.getElementById("dreamImage").src = "";
-
-                fetch("/analyze", {
-                    method: "POST",
-                    body: formData
-                })
-                    .then((response) => {
-                        if (!response.ok) {
-                            throw new Error("Failed to process the dream.");
-                        }
-                        return response.json();
-                    })
-                    .then((data) => {
-                        document.getElementById("interpretation").innerText = data.analysis || "No interpretation available.";
-                        if (data.image_data) {
-                            document.getElementById("dreamImage").src = "data:image/png;base64," + data.image_data;
-                        } else {
-                            document.getElementById("dreamImage").alt = "No image generated.";
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error:", error);
-                        document.getElementById("interpretation").innerText = "There was an error processing your dream. Please try again.";
-                    });
-            });
-
-            /**
-             * Handle the tweak image functionality.
-             * Triggered when the "Update Image" button is clicked.
-             */
-            const tweakButton = document.getElementById("tweakBtn");
-            tweakButton.addEventListener("click", () => {
-                const tweakInput = document.getElementById("tweakInput").value;
-                const formData = new FormData();
-                formData.append("tweak_text", tweakInput);
-
-                // Show loading message
-                document.getElementById("interpretation").innerText = "Applying tweaks to the image... Please wait.";
-
-                fetch("/tweak_image", {
-                    method: "POST",
-                    body: formData
-                })
-                    .then((response) => {
-                        if (!response.ok) {
-                            throw new Error("Failed to tweak the image.");
-                        }
-                        return response.json();
-                    })
-                    .then((data) => {
-                        if (data.image_data) {
-                            document.getElementById("dreamImage").src = "data:image/png;base64," + data.image_data;
-                        } else {
-                            document.getElementById("dreamImage").alt = "No image generated.";
-                        }
-                        document.getElementById("interpretation").innerText = "Image updated successfully!";
-                    })
-                    .catch((error) => {
-                        console.error("Error:", error);
-                        document.getElementById("interpretation").innerText = "Failed to apply tweaks. Please try again.";
-                    });
-            });
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const dreamText = dream_text.value;
+            fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ dream_text: dreamText })
+            })
+            .catch(error => console.error('Error:', error));
         });
     </script>
 </head>
 <body>
 <div class="container">
-    <!-- Form Section -->
     <div class="form-section">
         <h1>Dream Catcher</h1>
         <form name="dreamForm" id="dreamForm" method="post">
             <label for="dream_text">What Happened?</label>
-            <textarea
-                    id="dream_text"
-                    name="dream_text"
-                    placeholder="Describe the dream events..."
-                    required
-            ></textarea>
+            <textarea id="dream_text" name="dream_text" placeholder="Describe the dream events..." required></textarea>
+
             <button type="submit" id="generateBtn">Generate Dream Interpretation</button>
         </form>
+
+        <div class="analysis-section" id="interpretation">{{ interpretation }}</div>
     </div>
 
-    <!-- Output Section -->
-    <div class="output-section">
-        <!-- Dream Analysis Output -->
-        <h2>Interpretation:</h2>
-        <div id="interpretation" class="analysis-section">
-            <!-- Interpretation will be dynamically updated here -->
-        </div>
-
-        <!-- Generated Image Display -->
-        <h2>Generated Image:</h2>
+    <div class="image-section">
         <div id="imageContainer">
-            <img
-                    id="dreamImage"
-                    src=""
-                    alt="Dream Representation"
-                    style="max-width: 100%; height: auto;"
-            />
+            <img id="dreamImage" src="data:image/png;base64,{{ image_data }}" alt="Dream Representation" />
         </div>
-    </div>
-
-    <!-- Tweak Image Section -->
-    <div class="tweak-section">
-        <h3>Revise the Image:</h3>
-        <label for="tweakInput">Tweak Image Prompt:</label>
-        <input
-                type="text"
-                id="tweakInput"
-                placeholder="e.g., make it more vibrant, add clouds..."
-        />
-        <button id="tweakBtn">Update Image</button>
-    </div>
-
-    <!-- Sidebar for Image History -->
-    <button
-            class="burger-menu"
-            id="burgerMenuBtn"
-            aria-label="Open Image History"
-    >
-        &#9776;
-    </button>
-    <div class="navigation-sidebar" id="imageHistorySidebar">
-        <h2 style="padding: 1rem; margin: 0;">Image History</h2>
-        <ul id="imageList" style="list-style: none; margin: 0; padding: 1rem;">
-            <li>Generated Image #1</li>
-            <li>Generated Image #2</li>
-            <li>Generated Image #3</li>
-        </ul>
-        <button id="mergeBtn">Merge</button>
+        <div class="tweak-section">
+            <label for="tweakInput">Tweak Image Prompt</label>
+            <input type="text" id="tweakInput" placeholder="e.g. make it more vibrant, add clouds..." />
+            <button id="tweakBtn">Update Image</button>
+        </div>
     </div>
 </div>
+
+<button class="burger-menu" id="burgerMenuBtn" aria-label="Open Image History">
+    &#9776; </button>
+
+<div class="navigation-sidebar" id="imageHistorySidebar">
+    <h2 style="padding: 1rem; margin: 0;">Image History</h2>
+    <ul id="imageList" style="list-style: none; margin: 0; padding: 1rem;">
+        <li>Generated Image #1</li>
+        <li>Generated Image #2</li>
+        <li>Generated Image #3</li>
+    </ul>
+
+    <button id="mergeBtn">Merge</button>
+</div>
+
+<!-- <script src="script.js"></script> -->
 </body>
 </html>
