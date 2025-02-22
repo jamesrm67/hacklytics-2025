@@ -39,24 +39,38 @@ def analyze_sentiment(dream_text):
         return ("No dream text provided", 400)
     
     system_message = "You are a dream interpretation expert. Analyze the sentiment of the following dream description. Return a JSON object with a single key called 'sentiment'. The value of this key should be a tuple containin a string and floating point integer indicating the sentiment (positive, negative, neutral) with the floating point integer indicating the level of sentiment from 0.0 to 1.0."
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": dream_text}
-        ],
-        temperature=1.0,
-        max_tokens=150,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
-    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": dream_text}
+            ],
+            temperature=1.0,
+            max_tokens=150,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0
+        )
 
-    # Parse the response to extract the sentiment
-    content = response.choices[0].message.content
-    data = json.loads(content)
-    sentiments = data["sentiment"]
-    return sentiments
+        if not response or 'choices' not in response or not response.choices:
+            return("API response invalid or empty", 500)
+
+        content = response.choices[0].message.content.strip() if response.choices[0].message.content else ""
+
+        if not content:
+            return ("Empty response from API", 500)
+
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError as e:
+            return (f"Invalid JSON response: {e}", 500)
+
+        if "sentiment" not in data:
+            return ("Sentiment data missing in response", 500)
+
+    except Exception as e:
+        return f"An error occurred: {str(e)}", 500
 
 def interpret_symbols(dream_text):
     if not dream_text:
