@@ -12,7 +12,6 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
-app.secret_key = "supersecretkey"
 
 load_dotenv()
 app.secret_key = (os.getenv("SECRET_KEY"))
