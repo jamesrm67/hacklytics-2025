@@ -13,21 +13,21 @@ function BeforeInput() {
         setSidebarOpen(!sidebarOpen);
     };
 
-    const handleGenerateDream = () => {
+    const handleGenerateDream = async () => {
         setLoading(true);
         setError(null);
-        fetch('/analyze', {
+        fetch('http://127.0.0.1:5000/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ dream: dreamText }),
         })
-        .then(response => {
+        .then(async response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            return response.json();
+            return await response.json();
         })
         .then(data => {
             setAnalysisData(data);
