@@ -1,5 +1,6 @@
-from flask import Flask, request, send_file, render_template, jsonify, session, redirect, url_for
+from flask import Flask, request, send_file, jsonify, session, redirect, url_for
 from flask_cors import CORS
+from flask_login import LoginManager, login_required, current_user, login_user, logout_user
 
 import firebase_admin
 from firebase_admin import auth, credentials, db
@@ -10,6 +11,9 @@ import io
 import os
 from dotenv import load_dotenv
 
+from models.User import User
+
+# Firebase Service Key Setup
 load_dotenv()
 cred = credentials.Certificate("servicekey.json")
 firebase_admin.initialize_app(cred, {
@@ -22,16 +26,55 @@ app.secret_key = (os.getenv("SECRET_KEY"))
 
 CORS(app)
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "POST":
-        dream_text = request.form["dream_text"]      
+# Flask-Login Setup
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# User loader function
+@login_manager.user_loader
+def load_user(user_id):
+    # Fetch user data from Firebase Realtime Database using user_id
+    ref = db.reference(f'users/{user_id}')
+    user_data = ref.get()
+    if user_data:
+        user = User(id=user_id, **user_data)
+        return user
+    return None
+
+@app.route("/interpret", methods=['POST'])
+@login_required
+def interpret():
+    dream_text = request.form.get('dream')
+    if not dream_text:
+        return jsonify({'error': 'No dream text provided'}), 400
+    
+    try:
         analysis = analyze_dream(dream_text)
-        interpretation = analysis.get("interpretation", "No interpretation available.")
+        entities = analysis.get('entities')
+        sentiment = analysis.get('sentiment')
+        interpretation = analysis.get('interpretation')
         
-        return render_template("index.html", interpretation=interpretation)
-    else:
-        return render_template("index.html")
+        ref = db.reference('dreams')
+        new_dream_ref = ref.push()
+        new_dream_ref.set({
+            'user_id': current_user.id,
+            'dream-text': dream_text,
+            'interpretation': interpretation,
+            'sentiment': sentiment,
+            'entities': entities
+        })
+        
+        response_data = {
+            'Entities': entities,
+            'Sentiment': sentiment,
+            'Interpretation': interpretation
+        }
+        
+        return jsonify(response_data)
+    except auth.RevokedIdTokenError:
+        return jsonify({"error": "Token revoked"}), 401
+    except auth.InvalidIdTokenError:
+        return jsonify({"error": "Invalid token id"}), 401
 
 @app.route("/generate_img", methods=["POST"])
 def generate_img():
@@ -70,19 +113,21 @@ def login():
     token = data
     user_id, email, error_message = verify_token(token)
 
-    if not user_id or not email:
-        return jsonify({"error": "Invalid Token"}), 401
+    ref = db.reference(f'users/{user_id}')
+    user_data = ref.get()
 
-    # Store session
-    session["user_id"] = user_id
-    session["email"] = email
-
-    return jsonify({"message": "Login successful", "user_id": user_id, "email": email}), 200
+    if user_data:
+        user = User(id=user_id, username=user_data.get('name'), email=email)
+        login_user(user)
+        return jsonify({"message": "Login successful", "user_id": user_id, "email": email}), 200
+    else:
+        return jsonify({"error": "User not found"}), 404
     
 @app.route("/logout", methods=["GET"])
+@login_required
 def logout():
-    session.clear()
-    return jsonify({"message": "Logged out."}), 200
+    logout_user()
+    return jsonify({"message": "Successfully logged out."})
 
 def verify_token(user_token):
     try:
@@ -105,10 +150,6 @@ def dashboard():
     if "user_id" not in session:
         return jsonify({"error": "Unauthorized"}), 401
     return jsonify({"message": f"Welcome, {session['email']}!"}), 200
-
-@app.route("/test", methods=["POST"])
-def test():
-    return jsonify({"message": "Test successful"}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
