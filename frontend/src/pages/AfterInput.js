@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
+import DreamJournal from '../component/DreamJournal';
 import './AfterInput.css';
 
 function AfterInput({ analysisData }) {
@@ -71,7 +72,7 @@ function AfterInput({ analysisData }) {
             <nav className="navigation-sidebar" style={{ left: sidebarOpen ? '0' : '-350px' }}>
                 <h3 className="sidebar-title">Dream History</h3>
                 <ul className="sidebar-menu">
-                    {/* Your dream history items */}
+                    <DreamJournal />
                 </ul>
             </nav>
             <div className="content-wrapper">

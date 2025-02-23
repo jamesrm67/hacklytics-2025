@@ -40,10 +40,34 @@ def index():
 def serve_static(path):
     return send_from_directory(app.static_folder, path)
 
+@app.route('/dreams', methods=['GET'])
+def get_dreams():
+    uid, error_message = verify_firebase_token()
+    if error_message:
+        return jsonify({"error": "Unauthorized", "message": error_message}), 401
+
+    user_id = uid
+    try:
+        dreams_ref = db.reference(f"dreams/{user_id}")
+        dreams_data = dreams_ref.get()
+        
+        dream_list = []
+        if dreams_data:
+            for dream_id, dream_data in dreams_data.items():
+                dream_list.append({
+                    'id': dream_id,
+                    'text': dream_data.get('dream-text'),
+                    'interpretation': dream_data.get('interpretation'),
+                    'sentiment': dream_data.get('sentiment')
+                })
+            return jsonify(dream_list)
+    except Exception as e:
+        print(f"Error fetching dreams: {e}")
+        return jsonify({'message': 'Error fetching dreams'}), 500
+    
 @app.route('/analyze', methods=['POST'])
 def analyzer():
     uid, error_message = verify_firebase_token()
-    print(uid, error_message)
     if error_message:
         return jsonify({"error": "Unauthorized", "message": error_message}), 401
 
@@ -75,7 +99,6 @@ def analyzer():
             return jsonify({"analysis error": str(e)}), 700
     else:
         # Handle the string exception case
-        print(analysis_dict)
         return jsonify({"error": "Dream analysis failed: " + analysis_dict}), 600
 
 def generate_image_prompt(analysis):
@@ -120,12 +143,10 @@ def login():
 
 def verify_firebase_token():
     auth_header = request.headers.get('Authorization')
-    print(auth_header)
     if not auth_header or not auth_header.startswith('Bearer '):
         return None, "Authorization header missing or invalid"
 
     id_token = auth_header[len('Bearer '):-1]
-    print(id_token)
 
     try:
         decoded_token = auth.verify_id_token(id_token)
