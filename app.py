@@ -70,7 +70,7 @@ def analyzer():
             image = generate_dream_image(prompt)
             base64_image = encode_image_to_base64(image)
             
-            return jsonify({'analysis': analysis_dict['interpretation']})
+            return jsonify({'analysis': analysis_dict['interpretation'], 'image_data': base64_image})
         except TypeError as e:
             return jsonify({"analysis error": str(e)}), 700
     else:

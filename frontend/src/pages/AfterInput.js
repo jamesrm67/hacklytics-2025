@@ -55,6 +55,7 @@ function AfterInput({ analysisData }) {
         .catch(err => {
             setError(err.message);
             setLoading(false);
+            alert(err.message);
         });
     };
 

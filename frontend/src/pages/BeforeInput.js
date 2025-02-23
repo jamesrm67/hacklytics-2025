@@ -56,6 +56,7 @@ function BeforeInput() {
         .catch(err => {
             setError(err.message);
             setLoading(false);
+            alert(err.message);
         });
     };
 
