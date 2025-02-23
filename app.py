@@ -1,7 +1,6 @@
 import io
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
-from flask_login import LoginManager, login_required, current_user, login_user, logout_user
 
 import firebase_admin
 from firebase_admin import auth, credentials, db
@@ -13,7 +12,6 @@ import os
 from dotenv import load_dotenv
 import base64 #Import base64
 
-from models.User import User, get_user
 
 # Firebase Service Key Setup
 load_dotenv()
@@ -26,7 +24,7 @@ app = Flask(__name__, static_folder="frontend/build", static_url_path="")
 
 app.secret_key = (os.getenv("SECRET_KEY"))
 
-CORS(app)
+CORS(app, supports_credentials=True, origins=['http://127.0.0.1:3000/home', 'http://127.0.0.1:3000/login', 'http://127.0.0.1:3000'])
 
 def encode_image_to_base64(image):
     buffered = BytesIO()
@@ -43,8 +41,12 @@ def serve_static(path):
     return send_from_directory(app.static_folder, path)
 
 @app.route('/analyze', methods=['POST'])
-@login_required
 def analyzer():
+    uid, error_message = verify_firebase_token()
+    if error_message:
+        return jsonify({"error": "Unauthorized", "message": error_message}), 401
+
+    user_id = uid
     dream_text = request.json['dream']
     analysis_dict = analyze_dream(dream_text)
 
@@ -54,22 +56,16 @@ def analyzer():
             sentiment = analysis_dict['sentiment']
             entities = analysis_dict['entities']
             prompt = generate_image_prompt(interpretation)
-            
-            user = get_user(current_user.id)
-            
-            if user:
-                ref = db.reference('dreams')
-                new_dream_ref = ref.push()
-                new_dream_ref.set({
-                    'user_id': user.get_id(),
-                    'dream-text': dream_text,
-                    'interpretation': interpretation,
-                    'sentiment': sentiment,
-                    'entities': entities
-                })
-            else:
-                print(f"User not found for ID:", {current_user.id})
-                return jsonify({"error:" "User not found"}), 404
+                        
+            ref = db.reference('dreams')
+            new_dream_ref = ref.push()
+            new_dream_ref.set({
+                'user_id': user_id,
+                'dream-text': dream_text,
+                'interpretation': interpretation,
+                'sentiment': sentiment,
+                'entities': entities
+            })
             # image = generate_dream_image(prompt)
             # base64_image = encode_image_to_base64(image)
             
@@ -85,13 +81,13 @@ def generate_image_prompt(analysis):
     return f"A dreamlike image, {analysis}, surreal, detailed."
 
 # Flask-Login Setup
-login_manager = LoginManager()
-login_manager.init_app(app)
+# login_manager = LoginManager()
+# login_manager.init_app(app)
 
 # User loader function
-@login_manager.user_loader
-def load_user(user_id):
-    return User.get(user_id)
+# @login_manager.user_loader
+# def load_user(user_id):
+#     return get_user(user_id)
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -99,11 +95,10 @@ def register():
     email = data.get('email')
     password = data.get('password')
     name = data.get('name')
-
-    user = auth.create_user(email=email, password=password)
-    
+ 
     try:
         # Store user in Firestore
+        user = auth.create_user(email=email, password=password)
         user_ref = db.reference('/users/' + user.uid)
         user_ref.set({
             'name': name,
@@ -118,45 +113,34 @@ def register():
 def login():
     data = request.get_json()
     token = data
-    user_id, email, error_message = verify_token(token)
 
-    ref = db.reference(f'users/{user_id}')
-    user_data = ref.get()
-
-    if user_data:
-        user = User(id=user_id, username=user_data.get('name'), email=email)
-        login_user(user)
-        return jsonify({"message": "Login successful", "user_id": user_id, "email": email}), 200
-    else:
-        return jsonify({"error": "User not found"}), 404
+    if not token:
+        return jsonify({"error": "ID token required"}), 400
     
-@app.route("/logout", methods=["GET"])
-@login_required
-def logout():
-    logout_user()
-    return jsonify({"message": "Successfully logged out."})
-
-def verify_token(user_token):
     try:
-        decoded_token = auth.verify_id_token(user_token)
-        uid = decoded_token["uid"]
-        email = decoded_token["email"]
-        
-        if not uid or not email:
-            return None, None
-        
-        return uid, email, ""
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token['uid']
+        return jsonify({"message": "Login successful", "user_id": uid}), 200
     except auth.InvalidIdTokenError as e:
-        print(f"Token verification failed: {e}")
-        return jsonify({"error": "Invalid Id Token"})
+        return jsonify({"error": "Invalid ID token"}), 401
     except Exception as e:
-        return str(e)
-    
-@app.route("/dashboard", methods=["GET"])
-def dashboard():
-    if "user_id" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    return jsonify({"message": f"Welcome, {session['email']}!"}), 200
+        return jsonify({"error": "Login failed"})
 
+def verify_firebase_token():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return None, "Authorization header missing or invalid"
+
+    id_token = auth_header[len('Bearer '):]
+
+    try:
+        decoded_token = auth.verify_id_token(id_token)
+        uid = decoded_token['uid']
+        return uid, None  # Success, return UID, no error
+    except auth.InvalidIdTokenError as e:
+        return None, "Invalid Firebase ID token"
+    except Exception as e:
+        return None, str(e)
+    
 if __name__ == "__main__":
     app.run(debug=True)

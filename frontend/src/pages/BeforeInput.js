@@ -22,6 +22,7 @@ function BeforeInput() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ dream: dreamText }),
+            credentials: 'include'
         })
         .then(async response => {
             if (!response.ok) {

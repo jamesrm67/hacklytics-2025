@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import './Login.css'; 
+import { auth } from '../firebase';
 
 
 function Login() {
@@ -29,7 +29,8 @@ function Login() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(token)
+                body: JSON.stringify(token),
+                credentials: 'include'
             });
 
             const data = await response.json();
@@ -37,7 +38,7 @@ function Login() {
             if (response.ok) {
                 setSuccess(data.message)
                 alert("Login successful!");
-                navigate('/dashboard');
+                navigate('/home');
             } else {
                 setError(data.error);
             }

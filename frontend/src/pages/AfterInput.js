@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { auth } from '../firebase';
 import './AfterInput.css';
 
 function AfterInput({ analysisData }) {
@@ -7,6 +8,21 @@ function AfterInput({ analysisData }) {
     const [newAnalysisData, setNewAnalysisData] = useState(analysisData);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    useEffect(() => {
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is signed in, get ID token
+        const token = await user.getIdToken();
+        setIdToken(token); // Store ID token in state
+      } else {
+        // User is signed out
+        setIdToken(null);
+        // Optionally redirect to login page if needed
+      }
+      });
+      return () => unsubscribe(); // Unsubscribe on unmount
+    }, [auth]);
 
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
@@ -19,8 +35,10 @@ function AfterInput({ analysisData }) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}}`
             },
             body: JSON.stringify({ dream: updatedDreamText || newAnalysisData.originalDream }), //Use updated text, or original if empty.
+            credentials: 'include'
         })
         .then(response => {
             if (!response.ok) {
