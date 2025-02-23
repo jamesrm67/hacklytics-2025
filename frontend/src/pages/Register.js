@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -6,9 +7,10 @@ function Register() {
     email: '',
     password: '',
   });
-  
+
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,6 +36,7 @@ function Register() {
         setSuccess(data.message);
         // Optionally redirect or clear form after successful registration
         setFormData({ name: '', email: '', password: '' }); // Clear the form
+        navigate('/login');
       } else {
         setError(data.error);  // Display error from the backend
       }
