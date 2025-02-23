@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
+import './Login.css';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -47,16 +48,44 @@ function Register() {
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>{success}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
-        <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
-        <button type="submit">Register</button>
-      </form>
+    <div className="login-container">
+      <div className="login-box">
+        {/* Logo */}
+        <img src="/logodc.png" alt="Logo" className="login-logo" />
+        <h1 className="login-title">Register</h1>
+        {error && <p className="error-message">{error}</p>}
+        {success && <p className="success-message">{success}</p>}
+        <form onSubmit={handleSubmit} className="login-form">
+          <input 
+            type="text" 
+            name="name" 
+            placeholder="Name" 
+            value={formData.name} 
+            onChange={handleChange} 
+            required 
+            className="login-input"
+          />
+          <input 
+            type="email" 
+            name="email" 
+            placeholder="Email" 
+            value={formData.email} 
+            onChange={handleChange} 
+            required 
+            className="login-input"
+          />
+          <input 
+            type="password" 
+            name="password" 
+            placeholder="Password" 
+            value={formData.password} 
+            onChange={handleChange} 
+            required 
+            className="login-input"
+          />
+          <button type="submit" className="login-button">Register</button>
+        </form>
+      </div>
     </div>
   );
 }
