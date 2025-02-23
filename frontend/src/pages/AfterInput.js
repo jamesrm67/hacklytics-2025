@@ -1,125 +1,93 @@
 import React, { useState } from 'react';
 import './AfterInput.css';
 
+function AfterInput({ analysisData }) {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [updatedDreamText, setUpdatedDreamText] = useState('');
+    const [newAnalysisData, setNewAnalysisData] = useState(analysisData);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 function AfterInput() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [interpretation, setInterpretation] = useState("");
   const [dreamText, setDreamText] = useState("");
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
 
-  const handleChange = (e) => {
-    setDreamText(e.target.value);
-  }
+    const handleRegenerateDream = () => {
+        setLoading(true);
+        setError(null);
+        fetch('/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ dream: updatedDreamText || newAnalysisData.originalDream }), //Use updated text, or original if empty.
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            setNewAnalysisData(data);
+            setLoading(false);
+        })
+        .catch(err => {
+            setError(err.message);
+            setLoading(false);
+        });
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+    return (
+        <div className="after-input-container">
+            <header className="header-bar">
+                <button className="burger-menu" onClick={toggleSidebar}>
+                    <div className="bar" />
+                    <div className="bar" />
+                    <div className="bar" />
+                </button>
+                <img src="/logodc.png" alt="Logo" className="logo-image" />
+            </header>
+            <nav className="navigation-sidebar" style={{ left: sidebarOpen ? '0' : '-350px' }}>
+                <h3 className="sidebar-title">Dream History</h3>
+                <ul className="sidebar-menu">
+                    {/* Your dream history items */}
+                </ul>
+            </nav>
+            <div className="content-wrapper">
+                <div className="left-col">
+                    <img
+                        src={`data:image/png;base64,${newAnalysisData.image_data}`}
+                        alt="Generated Dream"
+                        className="dream-image"
+                    />
 
-    try {
-      const response = await fetch("http://127.0.0.1:5000/interpret", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(dreamText)
-      });
+                    <div className="dream-input-box">
+                        <input
+                            type="text"
+                            placeholder="Please update your dream..."
+                            className="dream-input"
+                            value={updatedDreamText}
+                            onChange={(e) => setUpdatedDreamText(e.target.value)}
+                        />
+                    </div>
 
-      const data = await response.json();
-      console.log(data.Interpretation);
+                    <button className="dream-button" onClick={handleRegenerateDream} disabled={loading}>
+                        {loading ? 'Regenerating...' : 'Regenerate Dream'}
+                    </button>
+                    {error && <p className="error-message">{error}</p>}
+                </div>
 
-      if (response.ok) {
-        setInterpretation(data.Interpretation);
-        alert("Successfully interpretted text");
-      } else {
-        const errorData = await response.json();
-        console.error('Interpretation Failed:', errorData.error);
-      }
-    } catch (error) {
-      console.error("Interpretation error:", error);
-    }
-  }
-
-  return (
-    <div className="after-input-container">
-      {/* Top header with burger (left) and logo (right) */}
-      <header className="header-bar">
-        <button className="burger-menu" onClick={toggleSidebar}>
-          <div className="bar" />
-          <div className="bar" />
-          <div className="bar" />
-        </button>
-
-        <img
-          src="/logodc.png"
-          alt="Logo"
-          className="logo-image"
-        />
-      </header>
-
-      {/* Navigation Sidebar */}
-      <nav
-        className="navigation-sidebar"
-        style={{ left: sidebarOpen ? '0' : '-350px' }}
-      >
-        <h3 className="sidebar-title">Dream History</h3>
-        <ul className="sidebar-menu">
-          <li className="menu-item">02/22/2025 Dream</li>
-                    <li className="menu-item">02/21/2025 Dream</li>
-                    <li className="menu-item">02/20/2025 Dream</li>
-                    <li className="menu-item">02/19/2025 Dream</li>
-                    <li className="menu-item">02/18/2025 Dream</li>
-                    <li className="menu-item">02/22/2025 Dream</li>
-                      <li className="menu-item">02/21/2025 Dream</li>
-                      <li className="menu-item">02/20/2025 Dream</li>
-                      <li className="menu-item">02/19/2025 Dream</li>
-                      <li className="menu-item">02/18/2025 Dream</li>
-                      <li className="menu-item">02/22/2025 Dream</li>
-                    <li className="menu-item">02/21/2025 Dream</li>
-                    <li className="menu-item">02/20/2025 Dream</li>
-                    <li className="menu-item">02/19/2025 Dream</li>
-                    <li className="menu-item">02/18/2025 Dream</li>
-                    <li className="menu-item">02/22/2025 Dream</li>
-                              <li className="menu-item">02/21/2025 Dream</li>
-                              <li className="menu-item">02/20/2025 Dream</li>
-                              <li className="menu-item">02/19/2025 Dream</li>
-                              <li className="menu-item">02/18/2025 Dream</li>
-        </ul>
-      </nav>
-
-      {/* Main content area: Black box on the left; interpretation text on the right */}
-      <div className="content-wrapper">
-        {/* Left Column: Big black box + Dream Input/Button */}
-        <div className="left-col">
-          <div className="big-black-box"></div>
-
-          <div className="dream-input-box">
-            <form onSubmit={handleSubmit}>
-              <input
-                onChange={handleChange}
-                type="text"
-                placeholder="Please update your dream..."
-                className="dream-input"
-              />
-              <button value="submit" type="submit" className="dream-button">Regenerate Dream</button>
-            </form>
-          </div>
-
-        </div>
-
-        {/* Right Column: Dream Interpretation */}
-        <div className="right-col dream-interpretation-box">
-          {interpretation && (
-            <div>
-              <h3>Interpretation:</h3>
-              <p>{interpretation}</p>
+                <div className="right-col dream-interpretation-box">
+                    <p>{newAnalysisData.analysis}</p>
+                </div>
             </div>
-          )}
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default AfterInput;
