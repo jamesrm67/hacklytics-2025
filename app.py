@@ -61,6 +61,7 @@ def analyzer():
 
 def generate_image_prompt(analysis):
     return f"A dreamlike image, {analysis}, surreal, detailed."
+
 # Flask-Login Setup
 login_manager = LoginManager()
 login_manager.init_app(app)
