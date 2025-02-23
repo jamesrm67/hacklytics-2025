@@ -35,7 +35,23 @@ def extract_entities(dream_text):
 
 def analyze_sentiment(dream_text):
     try:
-        system_message = "You are a dream interpretation expert. Analyze the sentiment of the following dream description. Return a JSON object with a single key called 'sentiment'. The value of this key should be a tuple containing a string and floating point integer indicating the sentiment (positive, negative, neutral) with the floating point integer indicating the level of sentiment from 0.0 to 1.0."
+        system_message = """
+            You are a dream interpretation expert. Analyze the sentiment of the provided dream description.
+
+            You MUST return a JSON object with the following strict format:
+
+            {
+            "sentiment": ["<sentiment_label>", <sentiment_score>]
+            }
+
+            Where:
+
+            * "<sentiment_label>" MUST be one of the following strings: "positive", "negative", or "neutral".
+            * <sentiment_score> MUST be a floating-point number between 0.0 and 1.0, representing the strength of the sentiment.
+
+            Do NOT include any additional text or explanations outside of the specified JSON format.
+            """
+
         print("pre response")
         response = client.chat.completions.create(
             model="gpt-4o-mini",
