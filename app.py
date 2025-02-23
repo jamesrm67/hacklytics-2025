@@ -45,7 +45,6 @@ def generate_img():
 
 @app.route("/register", methods=['POST'])
 def register():
-    print("Registering user...")
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
@@ -67,10 +66,11 @@ def register():
     
 @app.route("/login", methods=["POST"])
 def login():
-    token = request.json.get("token")
-    user_id, email = verify_token(token)
+    data = request.get_json()
+    token = data
+    user_id, email, error_message = verify_token(token)
 
-    if not user_id:
+    if not user_id or not email:
         return jsonify({"error": "Invalid Token"}), 401
 
     # Store session
@@ -82,7 +82,7 @@ def login():
 @app.route("/logout", methods=["GET"])
 def logout():
     session.clear()
-    return redirect(url_for("index"))
+    return jsonify({"message": "Logged out."}), 200
 
 def verify_token(user_token):
     try:
@@ -92,10 +92,11 @@ def verify_token(user_token):
         
         if not uid or not email:
             return None, None
+        
         return uid, email, ""
     except auth.InvalidIdTokenError as e:
         print(f"Token verification failed: {e}")
-        return None, None
+        return jsonify({"error": "Invalid Id Token"})
     except Exception as e:
         return str(e)
     
