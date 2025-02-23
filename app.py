@@ -58,6 +58,7 @@ def analyzer():
             return jsonify({"analysis error": str(e)}), 700
     else:
         # Handle the string exception case
+        print(analysis_dict)
         return jsonify({"error": "Dream analysis failed: " + analysis_dict}), 600
 
 def generate_image_prompt(analysis):
