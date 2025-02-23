@@ -13,7 +13,7 @@ import os
 from dotenv import load_dotenv
 import base64 #Import base64
 
-from models.User import User
+from models.User import User, get_user
 
 # Firebase Service Key Setup
 load_dotenv()
@@ -27,7 +27,6 @@ app = Flask(__name__, static_folder="frontend/build", static_url_path="")
 app.secret_key = (os.getenv("SECRET_KEY"))
 
 CORS(app)
-
 
 def encode_image_to_base64(image):
     buffered = BytesIO()
@@ -44,15 +43,36 @@ def serve_static(path):
     return send_from_directory(app.static_folder, path)
 
 @app.route('/analyze', methods=['POST'])
+@login_required
 def analyzer():
     dream_text = request.json['dream']
     analysis_dict = analyze_dream(dream_text)
 
     if isinstance(analysis_dict, dict):  # Check if it's a dictionary
         try:
-            prompt = generate_image_prompt(analysis_dict['interpretation'])
-            image = generate_dream_image(prompt)
-            base64_image = encode_image_to_base64(image)
+            interpretation = analysis_dict['interpretation']
+            sentiment = analysis_dict['sentiment']
+            entities = analysis_dict['entities']
+            prompt = generate_image_prompt(interpretation)
+            
+            user = get_user(current_user.id)
+            
+            if user:
+                ref = db.reference('dreams')
+                new_dream_ref = ref.push()
+                new_dream_ref.set({
+                    'user_id': user.get_id(),
+                    'dream-text': dream_text,
+                    'interpretation': interpretation,
+                    'sentiment': sentiment,
+                    'entities': entities
+                })
+            else:
+                print(f"User not found for ID:", {current_user.id})
+                return jsonify({"error:" "User not found"}), 404
+            # image = generate_dream_image(prompt)
+            # base64_image = encode_image_to_base64(image)
+            
             return jsonify({'analysis': analysis_dict['interpretation'], 'image_data': base64_image})
         except TypeError as e:
             return jsonify({"analysis error": str(e)}), 700
@@ -71,14 +91,7 @@ login_manager.init_app(app)
 # User loader function
 @login_manager.user_loader
 def load_user(user_id):
-    # Fetch user data from Firebase Realtime Database using user_id
-    ref = db.reference(f'users/{user_id}')
-    user_data = ref.get()
-    if user_data:
-        user = User(id=user_id, **user_data)
-        return user
-    return None
-
+    return User.get(user_id)
 
 @app.route("/register", methods=['POST'])
 def register():
