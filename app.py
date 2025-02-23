@@ -77,50 +77,6 @@ def load_user(user_id):
         return user
     return None
 
-@app.route("/interpret", methods=['POST'])
-# @login_required
-def interpret():
-    dream_text = request.get_json()
-    if not dream_text:
-        return jsonify({'error': 'No dream text provided'}), 400
-    
-    try:
-        analysis = analyze_dream(dream_text)
-        entities = analysis.get('entities')
-        sentiment = analysis.get('sentiment')
-        interpretation = analysis.get('interpretation')
-        
-        # ref = db.reference('dreams')
-        # new_dream_ref = ref.push()
-        # new_dream_ref.set({
-        #     'user_id': current_user.id,
-        #     'dream-text': dream_text,
-        #     'interpretation': interpretation,
-        #     'sentiment': sentiment,
-        #     'entities': entities
-        # })
-        
-        response_data = {
-            'Entities': entities,
-            'Sentiment': sentiment,
-            'Interpretation': interpretation
-        }
-        
-        return jsonify(response_data)
-    except auth.RevokedIdTokenError:
-        return jsonify({"error": "Token revoked"}), 401
-    except auth.InvalidIdTokenError:
-        return jsonify({"error": "Invalid token id"}), 401
-
-@app.route("/generate_img", methods=["POST"])
-def generate_img():
-    if request.method == "POST":
-        dream_prompt = request.form["dream_prompt"]
-        image = generate_dream_image(dream_prompt)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png')
 
 @app.route("/register", methods=['POST'])
 def register():
