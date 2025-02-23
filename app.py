@@ -70,8 +70,8 @@ def analyzer():
             else:
                 print(f"User not found for ID:", {current_user.id})
                 return jsonify({"error:" "User not found"}), 404
-            # image = generate_dream_image(prompt)
-            # base64_image = encode_image_to_base64(image)
+            image = generate_dream_image(prompt)
+            base64_image = encode_image_to_base64(image)
             
             return jsonify({'analysis': analysis_dict['interpretation'], 'image_data': base64_image})
         except TypeError as e:
@@ -112,6 +112,7 @@ def register():
         return jsonify({"message": "User registered successfully"}), 200
     except Exception as e:
         print(f"Error registering user: {e}")
+        print("")
         return jsonify({"error": "Failed to register user"}), 500
     
 @app.route("/login", methods=["POST"])
@@ -155,7 +156,7 @@ def verify_token(user_token):
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
     if "user_id" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({"error": "Unauthorized"}), 402
     return jsonify({"message": f"Welcome, {session['email']}!"}), 200
 
 if __name__ == "__main__":
