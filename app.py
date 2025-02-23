@@ -75,13 +75,15 @@ def analyzer():
             
             return jsonify({'analysis': analysis_dict['interpretation'], 'image_data': base64_image})
         except TypeError as e:
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"analysis error": str(e)}), 700
     else:
         # Handle the string exception case
-        return jsonify({"error": "Dream analysis failed: " + analysis_dict}), 500
+        print(analysis_dict)
+        return jsonify({"error": "Dream analysis failed: " + analysis_dict}), 600
 
 def generate_image_prompt(analysis):
     return f"A dreamlike image, {analysis}, surreal, detailed."
+
 # Flask-Login Setup
 login_manager = LoginManager()
 login_manager.init_app(app)

@@ -28,14 +28,31 @@ def extract_entities(dream_text):
         entities = data.get("entities", [])
         return entities
     except json.JSONDecodeError:
-        raise ValueError("Invalid JSON response from the API")
+        raise ValueError("Invalid JSON response from the API. Extracting entities failed.")
     except Exception as e:
         raise ValueError(f"Error extracting entities: {str(e)}")
 
 
 def analyze_sentiment(dream_text):
     try:
-        system_message = "You are a dream interpretation expert. Analyze the sentiment of the following dream description. Return a JSON object with a single key called 'sentiment'. The value of this key should be a tuple containing a string and floating point integer indicating the sentiment (positive, negative, neutral) with the floating point integer indicating the level of sentiment from 0.0 to 1.0."
+        system_message = """
+            You are a dream interpretation expert. Analyze the sentiment of the provided dream description.
+
+            You MUST return a JSON object with the following strict format:
+
+            {
+            "sentiment": ["<sentiment_label>", <sentiment_score>]
+            }
+
+            Where:
+
+            * "<sentiment_label>" MUST be one of the following strings: "positive", "negative", or "neutral".
+            * <sentiment_score> MUST be a floating-point number between 0.0 and 1.0, representing the strength of the sentiment.
+
+            Do NOT include any additional text or explanations outside of the specified JSON format.
+            """
+
+        print("pre response")
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -49,12 +66,15 @@ def analyze_sentiment(dream_text):
             presence_penalty=0
         )
         # Parse the response to extract the sentiment
+        print("pre content")
         content = response.choices[0].message.content
+        print("pre data")
         data = json.loads(content)
+        print("pre sentiments")
         sentiments = (data.get("sentiment")[0], data.get("sentiment")[1])
         return sentiments
     except json.JSONDecodeError:
-        raise ValueError("Invalid JSON response from the API")
+        raise ValueError("Invalid JSON response from the API. Analyzing sentiment failed.")
     except Exception as e:
         raise ValueError(f"Error analyzing sentiment: {str(e)}")
 
@@ -80,7 +100,7 @@ def interpret_symbols(dream_text):
         interpretation = data.get("interpretation")
         return interpretation
     except json.JSONDecodeError:
-        raise ValueError("Invalid JSON response from the API")
+        raise ValueError("Invalid JSON response from the API. Interpreting symbols failed.")
     except Exception as e:
         raise ValueError(f"Error interpreting symbols: {str(e)}")
 
