@@ -42,9 +42,9 @@ def load_user(user_id):
     return None
 
 @app.route("/interpret", methods=['POST'])
-@login_required
+# @login_required
 def interpret():
-    dream_text = request.form.get('dream')
+    dream_text = request.get_json()
     if not dream_text:
         return jsonify({'error': 'No dream text provided'}), 400
     
@@ -54,15 +54,15 @@ def interpret():
         sentiment = analysis.get('sentiment')
         interpretation = analysis.get('interpretation')
         
-        ref = db.reference('dreams')
-        new_dream_ref = ref.push()
-        new_dream_ref.set({
-            'user_id': current_user.id,
-            'dream-text': dream_text,
-            'interpretation': interpretation,
-            'sentiment': sentiment,
-            'entities': entities
-        })
+        # ref = db.reference('dreams')
+        # new_dream_ref = ref.push()
+        # new_dream_ref.set({
+        #     'user_id': current_user.id,
+        #     'dream-text': dream_text,
+        #     'interpretation': interpretation,
+        #     'sentiment': sentiment,
+        #     'entities': entities
+        # })
         
         response_data = {
             'Entities': entities,

@@ -3,10 +3,43 @@ import './AfterInput.css';
 
 function AfterInput() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [interpretation, setInterpretation] = useState("");
+  const [dreamText, setDreamText] = useState("");
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+
+  const handleChange = (e) => {
+    setDreamText(e.target.value);
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/interpret", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dreamText)
+      });
+
+      const data = await response.json();
+      console.log(data.Interpretation);
+
+      if (response.ok) {
+        setInterpretation(data.Interpretation);
+        alert("Successfully interpretted text");
+      } else {
+        const errorData = await response.json();
+        console.error('Interpretation Failed:', errorData.error);
+      }
+    } catch (error) {
+      console.error("Interpretation error:", error);
+    }
+  }
 
   return (
     <div className="after-input-container">
@@ -62,23 +95,27 @@ function AfterInput() {
           <div className="big-black-box"></div>
 
           <div className="dream-input-box">
-            <input
-              type="text"
-              placeholder="Please update your dream..."
-              className="dream-input"
-            />
+            <form onSubmit={handleSubmit}>
+              <input
+                onChange={handleChange}
+                type="text"
+                placeholder="Please update your dream..."
+                className="dream-input"
+              />
+              <button value="submit" type="submit" className="dream-button">Regenerate Dream</button>
+            </form>
           </div>
 
-          <button className="dream-button">Regenerate Dream</button>
         </div>
 
         {/* Right Column: Dream Interpretation */}
         <div className="right-col dream-interpretation-box">
-          <p>
-            The Dream Interpretation should go here in AfterInput.js.
-            You can display a detailed analysis or summary of the dream
-            the user entered on the left.
-          </p>
+          {interpretation && (
+            <div>
+              <h3>Interpretation:</h3>
+              <p>{interpretation}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
