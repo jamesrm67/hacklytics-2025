@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
+import './Login.css'; 
+
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -47,15 +49,32 @@ function Login() {
     }
 
     return (
-        <div>
-            <h1>Login</h1>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {success && <p style={{ color: 'green' }}>{success}</p>}
-            <form onSubmit={handleLogin}>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required />
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required />
-                <button type="submit">Login</button>
-            </form>
+        <div className="login-container">
+            <div className="login-box">
+                <img src="/logodc.png" alt="Logo" className="login-logo" />
+                <h1 className="login-title">Log In</h1>
+                {error && <p className="error-message">{error}</p>}
+                {success && <p className="success-message">{success}</p>}
+                <form onSubmit={handleLogin} className="login-form">
+                    <input 
+                        type="email" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        placeholder="Email" 
+                        required 
+                        className="login-input"
+                    />
+                    <input 
+                        type="password" 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        placeholder="Password" 
+                        required 
+                        className="login-input"
+                    />
+                    <button type="submit" className="login-button">Login</button>
+                </form>
+            </div>
         </div>
     );
 };
