@@ -91,8 +91,8 @@ def analyzer():
                 'sentiment': sentiment,
                 'entities': entities
             })
-            # image = generate_dream_image(prompt)
-            # base64_image = encode_image_to_base64(image)
+            image = generate_dream_image(prompt)
+            base64_image = encode_image_to_base64(image)
             
             return jsonify({'analysis': analysis_dict['interpretation']})
         except TypeError as e:
