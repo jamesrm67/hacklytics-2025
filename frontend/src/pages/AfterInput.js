@@ -7,10 +7,6 @@ function AfterInput({ analysisData }) {
     const [newAnalysisData, setNewAnalysisData] = useState(analysisData);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-function AfterInput() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [interpretation, setInterpretation] = useState("");
-  const [dreamText, setDreamText] = useState("");
 
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
@@ -88,6 +84,6 @@ function AfterInput() {
             </div>
         </div>
     );
-}
+};
 
 export default AfterInput;
