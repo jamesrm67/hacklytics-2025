@@ -6,3 +6,4 @@ diffusers
 accelerate
 flask-cors
 firebase-admin
+flask_login
