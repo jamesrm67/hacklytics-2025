@@ -54,10 +54,10 @@ def analyzer():
             base64_image = encode_image_to_base64(image)
             return jsonify({'analysis': analysis_dict['interpretation'], 'image_data': base64_image})
         except TypeError as e:
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"analysis error": str(e)}), 700
     else:
         # Handle the string exception case
-        return jsonify({"error": "Dream analysis failed: " + analysis_dict}), 500
+        return jsonify({"error": "Dream analysis failed: " + analysis_dict}), 600
 
 def generate_image_prompt(analysis):
     return f"A dreamlike image, {analysis}, surreal, detailed."
