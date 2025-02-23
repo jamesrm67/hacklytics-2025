@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 import './AfterInput.css';
 
@@ -8,6 +9,7 @@ function AfterInput({ analysisData }) {
     const [newAnalysisData, setNewAnalysisData] = useState(analysisData);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [idToken, setIdToken] = useState("");
 
     useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {

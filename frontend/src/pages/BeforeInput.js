@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import AfterInput from './AfterInput';
 import './BeforeInput.css';
 
@@ -8,21 +10,38 @@ function BeforeInput() {
     const [analysisData, setAnalysisData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [idToken, setIdToken] = useState("");
+   
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          // User is signed in, get ID token
+          const token = await user.getIdToken();
+          setIdToken(token); // Store ID token in state
+        } else {
+          // User is signed out
+          setIdToken(null);
+          // Optionally redirect to login page if needed
+        }
+        });
+        return () => unsubscribe(); // Unsubscribe on unmount
+      }, [auth]);
 
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
     };
 
     const handleGenerateDream = async () => {
+        console.log(idToken)
         setLoading(true);
         setError(null);
         fetch('http://127.0.0.1:5000/analyze', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}}`,
             },
             body: JSON.stringify({ dream: dreamText }),
-            credentials: 'include'
         })
         .then(async response => {
             if (!response.ok) {

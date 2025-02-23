@@ -24,7 +24,7 @@ app = Flask(__name__, static_folder="frontend/build", static_url_path="")
 
 app.secret_key = (os.getenv("SECRET_KEY"))
 
-CORS(app, supports_credentials=True, origins=['http://127.0.0.1:3000/home', 'http://127.0.0.1:3000/login', 'http://127.0.0.1:3000'])
+CORS(app, supports_credentials=True)
 
 def encode_image_to_base64(image):
     buffered = BytesIO()
@@ -43,6 +43,7 @@ def serve_static(path):
 @app.route('/analyze', methods=['POST'])
 def analyzer():
     uid, error_message = verify_firebase_token()
+    print(uid, error_message)
     if error_message:
         return jsonify({"error": "Unauthorized", "message": error_message}), 401
 
@@ -69,7 +70,7 @@ def analyzer():
             # image = generate_dream_image(prompt)
             # base64_image = encode_image_to_base64(image)
             
-            return jsonify({'analysis': analysis_dict['interpretation'], 'image_data': base64_image})
+            return jsonify({'analysis': analysis_dict['interpretation']})
         except TypeError as e:
             return jsonify({"analysis error": str(e)}), 700
     else:
@@ -79,15 +80,6 @@ def analyzer():
 
 def generate_image_prompt(analysis):
     return f"A dreamlike image, {analysis}, surreal, detailed."
-
-# Flask-Login Setup
-# login_manager = LoginManager()
-# login_manager.init_app(app)
-
-# User loader function
-# @login_manager.user_loader
-# def load_user(user_id):
-#     return get_user(user_id)
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -128,10 +120,12 @@ def login():
 
 def verify_firebase_token():
     auth_header = request.headers.get('Authorization')
+    print(auth_header)
     if not auth_header or not auth_header.startswith('Bearer '):
         return None, "Authorization header missing or invalid"
 
-    id_token = auth_header[len('Bearer '):]
+    id_token = auth_header[len('Bearer '):-1]
+    print(id_token)
 
     try:
         decoded_token = auth.verify_id_token(id_token)
