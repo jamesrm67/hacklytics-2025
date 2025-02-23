@@ -84,6 +84,6 @@ function AfterInput({ analysisData }) {
             </div>
         </div>
     );
-}
+};
 
 export default AfterInput;
