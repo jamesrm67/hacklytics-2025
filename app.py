@@ -1,3 +1,4 @@
+import base64
 from flask import Flask, request, send_file, jsonify, session, redirect, url_for
 from flask_cors import CORS
 from flask_login import LoginManager, login_required, current_user, login_user, logout_user
@@ -50,9 +51,15 @@ def interpret():
     
     try:
         analysis = analyze_dream(dream_text)
+        if not analysis:
+            return jsonify({"error": "No analysis."})
         entities = analysis.get('entities')
         sentiment = analysis.get('sentiment')
         interpretation = analysis.get('interpretation')
+        
+        img_prompt = generate_image_prompt(interpretation)
+        image = generate_dream_image(img_prompt)
+        base64_img = encode_image_to_base64(image)
         
         # ref = db.reference('dreams')
         # new_dream_ref = ref.push()
@@ -67,24 +74,17 @@ def interpret():
         response_data = {
             'Entities': entities,
             'Sentiment': sentiment,
-            'Interpretation': interpretation
+            'Interpretation': interpretation,
+            'Img': base64_img
         }
         
         return jsonify(response_data)
+    except AttributeError:
+        return jsonify({"error": "Attribute Error"}), 401
     except auth.RevokedIdTokenError:
         return jsonify({"error": "Token revoked"}), 401
     except auth.InvalidIdTokenError:
         return jsonify({"error": "Invalid token id"}), 401
-
-@app.route("/generate_img", methods=["POST"])
-def generate_img():
-    if request.method == "POST":
-        dream_prompt = request.form["dream_prompt"]
-        image = generate_dream_image(dream_prompt)
-        img_io = io.BytesIO()
-        image.save(img_io, 'PNG')
-        img_io.seek(0)
-        return send_file(img_io, mimetype='image/png')
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -145,11 +145,14 @@ def verify_token(user_token):
     except Exception as e:
         return str(e)
     
-@app.route("/dashboard", methods=["GET"])
-def dashboard():
-    if "user_id" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    return jsonify({"message": f"Welcome, {session['email']}!"}), 200
+def encode_image_to_base64(image):
+    buffered = io.BytesIO()
+    image.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return img_str
+
+def generate_image_prompt(analysis):
+    return f"A dreamlike image, {analysis}, surreal, detailed."
 
 if __name__ == "__main__":
     app.run(debug=True)

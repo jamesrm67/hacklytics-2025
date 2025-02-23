@@ -97,4 +97,4 @@ def analyze_dream(dream_text):
         }
         return nlp_output
     except Exception as e:
-        return str(e)
+        return None

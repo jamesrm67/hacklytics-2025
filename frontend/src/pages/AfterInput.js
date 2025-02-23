@@ -5,6 +5,7 @@ function AfterInput() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [interpretation, setInterpretation] = useState("");
   const [dreamText, setDreamText] = useState("");
+  const [img, setImg] = useState();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -27,10 +28,10 @@ function AfterInput() {
       });
 
       const data = await response.json();
-      console.log(data.Interpretation);
 
       if (response.ok) {
         setInterpretation(data.Interpretation);
+        setImg(data.Img);
         alert("Successfully interpretted text");
       } else {
         const errorData = await response.json();
@@ -92,8 +93,11 @@ function AfterInput() {
       <div className="content-wrapper">
         {/* Left Column: Big black box + Dream Input/Button */}
         <div className="left-col">
-          <div className="big-black-box"></div>
-
+          {img && (
+            <div className="big-black-box">
+              <img src={img} alt="Your Dream" />
+            </div>
+          )}
           <div className="dream-input-box">
             <form onSubmit={handleSubmit}>
               <input
@@ -105,7 +109,6 @@ function AfterInput() {
               <button value="submit" type="submit" className="dream-button">Regenerate Dream</button>
             </form>
           </div>
-
         </div>
 
         {/* Right Column: Dream Interpretation */}
