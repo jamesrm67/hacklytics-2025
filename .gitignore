@@ -4,3 +4,4 @@ __pycache__
 servicekey.json
 venv/
 .idea
+build
