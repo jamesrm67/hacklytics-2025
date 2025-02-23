@@ -1,6 +1,6 @@
 from diffusers import StableDiffusionPipeline
 
-model_id = "runwayml/stable-diffusion-v1-5"
+model_id = "CompVis/stable-diffusion-v1-4"
 pipe = StableDiffusionPipeline.from_pretrained(model_id)
 
 def generate_dream_image(dream_prompt):
